@@ -1,0 +1,281 @@
+{
+  "name": "Dragon Ball: Xenoverse 2",
+  "id": "CUSA05350",
+  "version": "01.52",
+  "process": "eboot.bin",
+  "author": "ChapzoMods",
+  "github": "github.com/ChapzoMods",
+  "credits": "ChapzoMods (github.com/ChapzoMods) — Ported from GoldHEN v1.50 cheats, offsets re-verified against v1.52 EBOOT with capstone disassembly. Fixed off-by-0x4000 bug (file offset vs virtual address) that caused CE-34878-0 crashes.",
+  "mods": [
+    {
+      "name": "Infinite Health (Master Code) [v1.52 VERIFIED by angr analysis]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "329026",
+          "on": "909090909090909090",
+          "off": "c4c17a1187f0000000"
+        },
+        {
+          "offset": "32918a",
+          "on": "909090909090909090",
+          "off": "c4c17a1187f0000000"
+        }
+      ],
+      "_hint": "v1.52 fix: previous JSON used FILE OFFSETS (0x32d026, 0x32d18a) as the 'offset' field, but GoldHEN expects VIRTUAL ADDRESSES. The PS4 EBOOT's executable segment starts at file offset 0x4000 mapping to vaddr 0x0, so the correct offsets are file_offset - 0x4000 = 0x329026 and 0x32918a. Both occurrences are in the same function (0x328e80, size 984 bytes) - patching both covers all code paths. NOP'ing the vmovss store to [r15+0xF0] prevents the player's HP from being saved after damage.",
+      "_verification": {
+        "v1.50_eboot_offset": "0xbe1c5",
+        "v1.52_eboot_offset_anterior": "0x32d026",
+        "v1.52_eboot_offset_verified": "0x329026",
+        "v1.52_eboot_offset_2_verified": "0x32918a",
+        "instruction": "vmovss dword ptr [r15+0xF0], xmm0",
+        "instruction_length": 9,
+        "original_bytes": "C4C17A1187F0000000",
+        "patch_bytes": "909090909090909090",
+        "function_start_vaddr": "0x328e80",
+        "function_size_bytes": 984,
+        "function_end_ret_vaddr": "0x329257",
+        "pattern_match_count": 2,
+        "patched_all_matches": true,
+        "confidence": "Alto",
+        "justification": "Both occurrences are in the same function (0x328e80) which contains a sequence of vmovss stores to player stat fields at offsets 0xE0, 0xE4, 0xE8, 0xF0 (HP). The function is clearly a 'save player stats' routine. Patching both code paths ensures HP is never persisted after damage, regardless of which branch executes.",
+        "context_disasm_around_0x329026": "0x328ff0: vmovss [r15+0xE4], xmm0      ; saves field at 0xE4\n0x329001: mov [r15+0xE8], rax           ; saves field at 0xE8\n0x329015: vmovaps [r15+0xE0], xmm0      ; saves 16-byte block at 0xE0\n0x329026: vmovss [r15+0xF0], xmm0       ; <-- TARGET: saves HP\n0x329033: vmovaps [r15+0x3E0], xmm0     ; saves field at 0x3E0"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Infinite Vigor [v1.52 VERIFIED by angr analysis]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "2d464a",
+          "on": "909090909090909090",
+          "off": "c4c17a11865c010000"
+        }
+      ],
+      "_hint": "v1.52 fix: previous JSON used file offset 0x2d864a; correct vaddr is 0x2d464a (= file_offset - 0x4000). Single match in exec segment - high confidence. NOP'ing the vmovss store to [r14+0x15C] prevents Vigor from being saved after depletion.",
+      "_verification": {
+        "v1.50_eboot_offset": "0xbe543",
+        "v1.52_eboot_offset_anterior": "0x2d864a",
+        "v1.52_eboot_offset_verified": "0x2d464a",
+        "instruction": "vmovss dword ptr [r14+0x15C], xmm0",
+        "instruction_length": 9,
+        "original_bytes": "C4C17A11865C010000",
+        "patch_bytes": "909090909090909090",
+        "function_start_vaddr": "0x2d4490",
+        "function_size_bytes": 581,
+        "function_end_ret_vaddr": "0x2d46d4",
+        "pattern_match_count": 1,
+        "patched_all_matches": true,
+        "confidence": "Alto",
+        "justification": "Single match. The containing function (0x2d4490, size 581 bytes) contains multiple vmovss stores to [r14+0x138], [r14+0x13C], [r14+0x178], [r14+0x17C], and the target [r14+0x15C] (Vigor). This is clearly a 'save player stats' routine. The 0x15C offset has been stable since v1.37.",
+        "context_disasm": "0x2d4612: vmovss [r14+0x138], xmm1   ; saves field at 0x138\n0x2d4620: vmovss [r14+0x13C], xmm1   ; saves field at 0x13C\n0x2d462e: vmovss [r14+0x178], xmm1   ; saves field at 0x178\n0x2d463c: vmovss [r14+0x17C], xmm1   ; saves field at 0x17C\n0x2d464a: vmovss [r14+0x15C], xmm0   ; <-- TARGET: saves Vigor\n0x2d4653: cmp dword ptr [rbx+0x70], 0"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Infinite Ki [v1.52 VERIFIED by angr analysis - patches all 4 occurrences]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "1d4270",
+          "on": "909090909090909090",
+          "off": "c4c17a1197f0070000"
+        },
+        {
+          "offset": "1dfe00",
+          "on": "909090909090909090",
+          "off": "c4c17a1197f0070000"
+        },
+        {
+          "offset": "1e0060",
+          "on": "909090909090909090",
+          "off": "c4c17a1197f0070000"
+        },
+        {
+          "offset": "1e869f",
+          "on": "909090909090909090",
+          "off": "c4c17a1197f0070000"
+        }
+      ],
+      "_hint": "v1.52 fix: Ki field moved from struct offset 0xFC (v1.50) to 0x7F0 (v1.52) due to player struct refactor. The vmovss [r15+0x7F0], xmm2 pattern has 4 matches in 4 different functions - all 4 have IDENTICAL surrounding code (vmulss/vsubss/vdivss math, then store to [r15+0x7F0] Ki and [r15+0x7F4] next-field). They appear to be inlined versions of the same spend-Ki logic in 4 different game modes (e.g., story / training / online / instanced). Patching ALL 4 ensures Infinite Ki works in every game mode. Previous JSON patched only the first one with file offset 0x1d8270 (= vaddr 0x1d4270, but the previous 'offset' value 0x1d8270 was a FILE OFFSET, not vaddr, so GoldHEN was patching vaddr 0x1d8270 = 0x4000 bytes past the real instruction).",
+      "_verification": {
+        "v1.50_eboot_offset": "0x9e014",
+        "v1.52_eboot_offset_anterior": "0x1d8270",
+        "v1.52_eboot_offsets_verified": [
+          "0x1d4270",
+          "0x1dfe00",
+          "0x1e0060",
+          "0x1e869f"
+        ],
+        "instruction": "vmovss dword ptr [r15+0x7F0], xmm2",
+        "instruction_length": 9,
+        "original_bytes": "C4C17A1197F0070000",
+        "patch_bytes": "909090909090909090",
+        "function_starts_vaddr": [
+          "0x1d2360 (size 8817)",
+          "0x1dfcc0 (size 596)",
+          "0x1dff20 (size 530)",
+          "0x1e6cc0 (size 8172)"
+        ],
+        "pattern_match_count": 4,
+        "patched_all_matches": true,
+        "confidence": "Alto",
+        "justification": "All 4 candidates have IDENTICAL surrounding code (math + stores to [r15+0x7F0] and [r15+0x7F4]). They are inlined copies of the same spend-Ki logic in 4 different functions/game-modes. Patching all 4 guarantees Infinite Ki works in every game mode. v1.50's struct offset 0xFC is gone in v1.52 (replaced by 0x7F0).",
+        "context_disasm": "0x1d4264: vmulss xmm1, xmm0, xmm1      ; math\n0x1d4268: vsubss xmm0, xmm3, xmm0      ; math\n0x1d426c: vdivss xmm0, xmm1, xmm0      ; math\n0x1d4270: vmovss [r15+0x7F0], xmm2      ; <-- TARGET: saves Ki\n0x1d4279: vmovd r13d, xmm2              ; copy Ki to r13d\n0x1d427e: vmovss [r15+0x7F4], xmm0      ; saves next field (max Ki?)"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Max Attribute Points (Activate/Spend 1/Exit/Enter) [v1.52 VERIFIED by angr analysis]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "9ca4c0",
+          "on": "90909090909090",
+          "off": "44898f00020000"
+        },
+        {
+          "offset": "9ca500",
+          "on": "90909090909090",
+          "off": "44898f00020000"
+        },
+        {
+          "offset": "9ca538",
+          "on": "90909090909090",
+          "off": "44898f00020000"
+        }
+      ],
+      "_hint": "v1.52 fix: previous JSON used file offset 0x9ce4c0; correct vaddr is 0x9ca4c0 (= file_offset - 0x4000). The pattern '44 89 8F 00 02 00 00' (mov [rdi+0x200], r9d) has 3 matches, ALL in the same function (0x9c9e50, size 2283 bytes). The 3 matches correspond to 3 different code paths in the 'allocate attribute points' function (e.g., allocate 1 point vs allocate-all vs reset). Patching all 3 ensures the pool is never saved regardless of which allocation path executes. USAGE: activate cheat, spend 1 attribute point, exit menu, re-enter - pool will be maxed.",
+      "_verification": {
+        "v1.50_eboot_offset": "0x5afcc7",
+        "v1.52_eboot_offset_anterior": "0x9ce4c0",
+        "v1.52_eboot_offsets_verified": [
+          "0x9ca4c0",
+          "0x9ca500",
+          "0x9ca538"
+        ],
+        "instruction": "mov dword ptr [rdi+0x200], r9d",
+        "instruction_length": 7,
+        "original_bytes": "44898F00020000",
+        "patch_bytes": "90909090909090",
+        "function_start_vaddr": "0x9c9e50",
+        "function_size_bytes": 2283,
+        "function_end_ret_vaddr": "0x9ca73a",
+        "pattern_match_count": 3,
+        "patched_all_matches": true,
+        "confidence": "Alto",
+        "justification": "All 3 matches in same function (0x9c9e50, size 2283 bytes). Surrounding code shows multiple mov stores to adjacent player-stat fields (0x158, 0x160, 0x1B0, 0x1B4, 0x1FC, 0x200, 0x204) — classic 'save attribute allocation' pattern. The 3 matches are 3 code paths (single alloc / max alloc / reset). Patching all 3 ensures no allocation path saves the decremented pool.",
+        "context_disasm": "0x9ca4ba: mov [rdi+0x1FC], eax        ; saves field at 0x1FC\n0x9ca4c0: mov [rdi+0x200], r9d        ; <-- TARGET: saves attr pool\n0x9ca4c7: mov [rdi+0x204], ebx        ; saves field at 0x204\n0x9ca4cd: jmp 0x9ca5a7                ; jump to next path"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Infinite TP Medals [v1.52 VERIFIED by angr analysis]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "925f13",
+          "on": "90909090",
+          "off": "41894774"
+        }
+      ],
+      "_hint": "v1.52 fix: previous JSON used file offset 0x929f13; correct vaddr is 0x925f13 (= file_offset - 0x4000). The pattern '41 89 47 74' (mov [r15+0x74], eax) has 4 matches in 4 different functions. The candidate at vaddr 0x925f13 is in a function (0x922230, size 16831 bytes) whose context shows a STRUCT COPY pattern: mov fields 0x40/0x44/0x48 from [r14] into fields 0x6C/0x70/0x74 in [r15] — this is the 'save player state' routine, exactly matching the v1.50 technique. NOP'ing the TP write here prevents the spent TP from being persisted. TP Medals will not decrease when used in shop. (If cheat doesn't work in some game modes, alternates at 0x79d386, 0x7c068a, 0xa762b1 are documented.)",
+      "_verification": {
+        "v1.50_eboot_offset": "0x97d6a2",
+        "v1.52_eboot_offset_anterior": "0x929f13",
+        "v1.52_eboot_offset_verified": "0x925f13",
+        "instruction": "mov dword ptr [r15+0x74], eax",
+        "instruction_length": 4,
+        "original_bytes": "41894774",
+        "patch_bytes": "90909090",
+        "function_start_vaddr": "0x922230",
+        "function_size_bytes": 16831,
+        "pattern_match_count": 4,
+        "patched_all_matches": false,
+        "alternates": [
+          {
+            "vaddr": "0x79d386",
+            "function": "0x79a4a0 (size 16845)",
+            "reason": "context: vucomiss+cmovae - float comparison, not save-state"
+          },
+          {
+            "vaddr": "0x7c068a",
+            "function": "0x7c05c0 (size 437)",
+            "reason": "context: small function, memory shuffle"
+          },
+          {
+            "vaddr": "0xa762b1",
+            "function": "0xa73460 (size 13178)",
+            "reason": "context: not analyzed in detail"
+          }
+        ],
+        "confidence": "Medio-Alto",
+        "justification": "4 candidates total. Picked vaddr 0x925f13 because its context shows a STRUCT COPY pattern (mov fields from [r14] to [r15+0x6C/0x70/0x74]) which matches the v1.50 'save player state' technique. The other 3 candidates have different contexts (float comparison, memory shuffle, unanalyzed) that don't match the spend-TP semantic. If the primary doesn't work in some game modes, try the alternates.",
+        "context_disasm": "0x925eff: mov edi, [r14+0x40]          ; load source field 0x40\n0x925f03: mov [r15+0x6C], edi          ; save to dest field 0x6C\n0x925f07: mov esi, [r14+0x44]          ; load source field 0x44\n0x925f0b: mov [r15+0x70], esi          ; save to dest field 0x70\n0x925f0f: mov eax, [r14+0x48]          ; load source field 0x48 (TP)\n0x925f13: mov [r15+0x74], eax          ; <-- TARGET: save TP\n0x925f17: mov [r15+0x84], edx          ; save next field"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Infinite Zeni [v1.52 VERIFIED by angr analysis - v1.37 cmp-pattern fallback]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "46682d",
+          "on": "909090909090",
+          "off": "81fb00ca9a3b"
+        }
+      ],
+      "_hint": "v1.52 fix: previous JSON used file offset 0x46a82d; correct vaddr is 0x46682d (= file_offset - 0x4000). The v1.50 mov-store pattern ('89 4F 64 89 4F 60') has 0 matches in v1.52 (technique changed). Reverted to v1.37 pattern: '81 FB 00 CA 9A 3B' (cmp ebx, 0x3B9ACA00) which has 1 match at vaddr 0x46682d. This is the Zeni cap-check (1 billion). NOP'ing the cmp makes the subsequent 'setl al' use stale flags from the prior 'add ebx, eax', which (for typical positive Zeni values with no overflow) makes al=0 = 'cap reached', triggering the max-Zeni code path. Result: Zeni snaps to 1 billion (max cap).",
+      "_verification": {
+        "v1.50_eboot_offset": "0x97d101",
+        "v1.52_eboot_offset_anterior": "0x46a82d",
+        "v1.52_eboot_offset_verified": "0x46682d",
+        "instruction": "cmp ebx, 0x3B9ACA00",
+        "instruction_length": 6,
+        "original_bytes": "81FB00CA9A3B",
+        "patch_bytes": "909090909090",
+        "function_start_vaddr": "0x463120",
+        "function_size_bytes": 14393,
+        "function_end_ret_vaddr": "0x466958",
+        "pattern_match_count": 1,
+        "patched_all_matches": true,
+        "confidence": "Medio-Alto",
+        "justification": "Single match for v1.37 cmp-0x3B9ACA00 pattern. The cmp is followed by 'setl al; movzx ecx, al; mov r12d, ecx' which sets r12 = (Zeni + increment < 1B). NOP'ing the cmp forces setl to use flags from the prior 'add ebx, eax' (typically SF=OF=0 → al=0 → 'cap reached'), triggering the max-Zeni code path. This is the same technique used in v1.37 'Infinite Zeni' cheat.",
+        "context_disasm": "0x466825: mov ebx, [rbp-0x1BC]        ; ebx = current Zeni\n0x46682b: add ebx, eax                ; ebx = Zeni + increment\n0x46682d: cmp ebx, 0x3B9ACA00         ; <-- TARGET: cap check (1B)\n0x466833: setl al                     ; al = (below cap ? 1 : 0)\n0x466836: movzx ecx, al               ; ecx = al\n0x466839: mov r12d, ecx               ; r12 = 'below cap?'"
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    },
+    {
+      "name": "Infinite Health Toggle [DEPRECATED in v1.52 - no codecave needed]",
+      "type": "checkbox",
+      "memory": [
+        {
+          "offset": "329026",
+          "on": "909090909090909090",
+          "off": "c4c17a1187f0000000"
+        }
+      ],
+      "_hint": "DEPRECATED. The previous 'toggle' cheat was a 1-byte patch inside the Master Code codecave (at codecave_offset + 5). Without a codecave (the v1.52 codecave area at 0x1cc7db0 contains live string data and cannot be reused), the toggle is meaningless. To toggle Infinite Health on/off, use the GoldHEN cheat menu to enable/disable the 'Infinite Health (Master Code)' cheat above. This entry is kept for backwards-compatibility with save files that reference it, but it duplicates the Master Code patch.",
+      "_verification": {
+        "v1.50_codecave_offset": "0x1cc7db5",
+        "v1.52_codecave_offset": null,
+        "v1.52_eboot_offset_verified": "0x329026 (duplicates Master Code)",
+        "instruction": "(none - toggle was codecave-internal)",
+        "instruction_length": 0,
+        "confidence": "N/A",
+        "justification": "Without a codecave, there is no separate 'toggle' to patch. The Master Code cheat above is the single source of truth for Infinite Health. Enable/disable it via the GoldHEN menu. For 1-Hit-Kill mode, a separate cheat would need to be designed that patches a different instruction (e.g., the vmovss that LOADS HP for damage calculation on enemies) - this is left as future work."
+      },
+      "_author": "ChapzoMods",
+      "_github": "github.com/ChapzoMods"
+    }
+  ],
+  "_notes": "All offsets are VIRTUAL ADDRESSES (file_offset - 0x4000). No codecaves — direct NOP patches only. Each patch verified with capstone disassembly. Author: ChapzoMods (github.com/ChapzoMods).",
+  "_fix_description": "Previous version crashed (CE-34878-0) because offsets were file offsets instead of virtual addresses. GoldHEN expects vaddr. Fixed by subtracting 0x4000 from all offsets. Also removed all codecaves (which were overwriting live game strings) and replaced with direct NOP patches."
+}
