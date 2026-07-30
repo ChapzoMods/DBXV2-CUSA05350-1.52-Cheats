@@ -6,26 +6,16 @@
 **Title ID:** CUSA05350  
 **Version:** 01.52 (Future Saga Chapter 4 — latest)  
 
-## Cheats Included (6 working + 1 deprecated)
+## Cheats Included (6 cheats, 12 patches)
 
-| # | Cheat | Method | Patches |
-|---|-------|--------|---------|
-| 1 | Infinite Health | NOP × 9 (2 patches) | vmovss [r15+0xF0], xmm0 |
-| 2 | Infinite Vigor (Stamina) | NOP × 9 (1 patch) | vmovss [r15+0x15C], xmm0 |
-| 3 | Infinite Ki | NOP × 9 (4 patches) | vmovss [r15+0x7F0], xmm2 |
-| 4 | Max Attribute Points | NOP × 7 (3 patches) | mov [r15+0x200], ecx |
-| 5 | Infinite TP Medals | NOP × 4 (1 patch) | mov [r15+0x74], eax |
-| 6 | Infinite Zeni | cmp override (1 patch) | cmp ebx, 0x3B9ACA00 → 0x7FFFFFFF |
-
-## Important Fix (v1.52 vs v1.50)
-
-Previous v1.50 cheats caused **CE-34878-0 crashes** in v1.52 due to:
-
-1. **Off-by-0x4000 bug**: GoldHEN expects **virtual addresses**, not file offsets. The v1.52 EBOOT has `p_offset=0x4000` / `p_vaddr=0x0`, so `vaddr = file_offset - 0x4000`. All offsets in this JSON have been corrected.
-
-2. **Codecaves over live strings**: The v1.50 codecave addresses (0x1CC7xxx) now point to live game strings in v1.52. All codecaves have been removed — only direct NOP patches are used.
-
-3. **Multi-branch coverage**: Some cheats (Inf Health, Inf Ki, Max Attr) now patch ALL branches/instances of the target instruction, not just one.
+| # | Cheat | Patches | Method |
+|---|-------|---------|--------|
+| 1 | Max/Infinite Health (Master Code) | 2 × NOP×9 | vmovss [r15+0xF0], xmm0 |
+| 2 | Infinite Vigor (Stamina) | 1 × NOP×9 | vmovss [r15+0x15C], xmm0 |
+| 3 | Infinite Ki | 4 × NOP×9 | vmovss [r15+0x7F0], xmm2 |
+| 4 | Max Attribute Points | 3 × NOP×7 | mov [r15+0x200], ecx |
+| 5 | Infinite TP Medals | 1 × NOP×4 | mov [r15+0x74], eax |
+| 6 | Infinite Zeni (On Use) | 1 × cmp override | cmp ebx, 0x3B9ACA00 → 0x7FFFFFFF |
 
 ## Installation
 
@@ -41,17 +31,23 @@ Previous v1.50 cheats caused **CE-34878-0 crashes** in v1.52 due to:
 
 4. Open GoldHEN overlay (PS Button) → enable cheats
 
+## Important — Format Fix
+
+This JSON uses the **exact same format** as the official GoldHEN cheat files (verified against CUSA05350_01.34.json and CUSA05350_01.44.json from the GoldHEN repository). 
+
+All offsets are **file offsets** (not virtual addresses), matching the convention used by all official GoldHEN cheat files.
+
 ## Testing Recommendations
 
 - **Backup your save** with Apollo Save Tool before testing
 - Test **one cheat at a time** in Training Mode (not online)
-- If a cheat doesn't work, disable it and try the next one
 - Infinite Zeni is "On Use" — spend Zenni to trigger the max value
+- Max Attribute Points: activate, spend 1 point, exit menu, re-enter
 
 ## Technical Details
 
 - **EBOOT:** 42 MB ELF 64-bit, build "PS4 Ver.1.52.00 Build:May 24 2016"
-- **Verification:** All offsets verified with capstone disassembly + pyelftools ELF parsing
+- **Verification:** All offsets verified with capstone disassembly
 - **No codecaves:** 100% direct NOP patches in .text section
 - **All ON/OFF lengths match:** No instruction misalignment
 
